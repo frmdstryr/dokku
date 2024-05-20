@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"sort"
 	"strings"
-	appjson "github.com/dokku/dokku/plugins/app-json"
+	"encoding/json"
 )
 
 // CommandPropertySet is a generic function that will set a property for a given plugin/app combination
@@ -104,15 +104,42 @@ func PropertyExists(pluginName string, appName string, property string) bool {
 	return !os.IsNotExist(err)
 }
 
+type appJSONProperties struct {
+	PluginProperties map[string]map[string]string `json:"pluginproperties"`
+}
+
+// GetAppJSON returns the parsed app.json file for a given app
+func getAppJSONProperties(appName string) (appJSONProperties, error) {
+	if !HasAppJSON(appName) {
+		return appJSONProperties{}, nil
+	}
+
+	b, err := os.ReadFile(GetProcessSpecificAppJSONPath(appName))
+	if err != nil {
+		return appJSONProperties{}, fmt.Errorf("Cannot read app.json file: %v", err)
+	}
+
+	if strings.TrimSpace(string(b)) == "" {
+		return appJSONProperties{}, nil
+	}
+
+	var appJSON appJSONProperties
+	if err = json.Unmarshal(b, &appJSON); err != nil {
+		return appJSONProperties{}, fmt.Errorf("Cannot parse app.json: %v", err)
+	}
+
+	return appJSON, nil
+}
+
 // PropertyGet returns the value for a given property
 func PropertyGet(pluginName string, appName string, property string) string {
-	var defaultValue string := ""
-	appJSON, err := appjson.GetAppJSON(appName)
+	var defaultValue string = ""
+	appJSON, err := getAppJSONProperties(appName)
 	if err == nil {
-		pluginProperties, err = appJSON.PluginProperties[pluginName]
-		if err == nil {
-				v, err = pluginProperties[property]
-				if err == nil {
+		pluginProperties, ok := appJSON.PluginProperties[pluginName]
+		if ok {
+				v, ok := pluginProperties[property]
+				if ok {
 					defaultValue = v
 				}
 		}

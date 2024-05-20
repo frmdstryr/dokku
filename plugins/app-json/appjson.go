@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/dokku/dokku/plugins/common"
 	"k8s.io/utils/ptr"
 )
 
@@ -32,9 +33,6 @@ type AppJSON struct {
 
 	// Healthchecks is a map of process types to healthchecks
 	Healthchecks map[string][]Healthcheck `json:"healthchecks"`
-
-	// Plugin properties
-	PluginProperties map[string]map[string]string `json:"pluginproperties"`
 
 	// Scripts is a map of scripts to execute
 	Scripts struct {
@@ -186,18 +184,23 @@ type OnFailure struct {
 	Url string `json:"url,omitempty"`
 }
 
+// GetAppjsonDirectory returns the directory containing a given app's extracted app.json file
+func GetAppjsonDirectory(appName string) string {
+	return common.GetAppDataDirectory("app-json", appName)
+}
+
 // GetAppjsonPath returns the path to a given app's extracted app.json file for use by other plugins
 func GetAppjsonPath(appName string) string {
-	return getProcessSpecificAppJSONPath(appName)
+	return common.GetProcessSpecificAppJSONPath(appName)
 }
 
 // GetAppJSON returns the parsed app.json file for a given app
 func GetAppJSON(appName string) (AppJSON, error) {
-	if !hasAppJSON(appName) {
+	if !common.HasAppJSON(appName) {
 		return AppJSON{}, nil
 	}
 
-	b, err := os.ReadFile(getProcessSpecificAppJSONPath(appName))
+	b, err := os.ReadFile(common.GetProcessSpecificAppJSONPath(appName))
 	if err != nil {
 		return AppJSON{}, fmt.Errorf("Cannot read app.json file: %v", err)
 	}
