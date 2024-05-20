@@ -34,6 +34,9 @@ type AppJSON struct {
 	// Healthchecks is a map of process types to healthchecks
 	Healthchecks map[string][]Healthcheck `json:"healthchecks"`
 
+	// Plugin properties
+	PluginProperties map[string]map[string]string `json:"pluginproperties"`
+
 	// Scripts is a map of scripts to execute
 	Scripts struct {
 		// Dokku is a map of scripts to execute for Dokku-specific events

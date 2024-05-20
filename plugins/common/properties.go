@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"sort"
 	"strings"
+	appjson "github.com/dokku/dokku/plugins/app-json"
 )
 
 // CommandPropertySet is a generic function that will set a property for a given plugin/app combination
@@ -105,7 +106,18 @@ func PropertyExists(pluginName string, appName string, property string) bool {
 
 // PropertyGet returns the value for a given property
 func PropertyGet(pluginName string, appName string, property string) string {
-	return PropertyGetDefault(pluginName, appName, property, "")
+	var defaultValue string := ""
+	appJSON, err := appjson.GetAppJSON(appName)
+	if err == nil {
+		pluginProperties, err = appJSON.PluginProperties[pluginName]
+		if err == nil {
+				v, err = pluginProperties[property]
+				if err == nil {
+					defaultValue = v
+				}
+		}
+	}
+	return PropertyGetDefault(pluginName, appName, property, defaultValue)
 }
 
 // PropertyGetAll returns a map of all properties for a given app
