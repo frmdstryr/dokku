@@ -7,7 +7,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/dokku/dokku/plugins/common"
 	"k8s.io/utils/ptr"
 )
 
@@ -185,11 +184,6 @@ type OnFailure struct {
 
 	// Url is the URL to call on failure
 	Url string `json:"url,omitempty"`
-}
-
-// GetAppjsonDirectory returns the directory containing a given app's extracted app.json file
-func GetAppjsonDirectory(appName string) string {
-	return common.GetAppDataDirectory("app-json", appName)
 }
 
 // GetAppjsonPath returns the path to a given app's extracted app.json file for use by other plugins
